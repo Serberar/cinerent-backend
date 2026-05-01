@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role{
+  USER
+  ADMIN
+}
+model User {
+  id                              String    @id @default(uuid())
+  firstName                       String
+  lastName                        String
+  dni                             String    @unique
+  phone                           String
+  address                         String
+  cardNumber                      String
+  email                           String    @unique
+  passwordHash                    String
+  isEmailVerified                 Boolean   @default(false)
+  emailVerificationToken          String?   @unique
+  emailVerificationTokenExpiresAt DateTime?
+  createdAt                       DateTime  @default(now())
+  updatedAt                       DateTime  @updatedAt
+  products                        Product[]
+  role                            Role      @default(USER)
+  suspended                       Boolean   @default(false)
+  suspensionNote                  String?
+  @@map("users")
+}
+
+model Product {
+  id         String    @id @default(uuid())
+  movieId    String       
+  userId     String
+  movieTitle String
+  dias       Int
+  rentedAt   DateTime  @default(now())
+  returnedAt DateTime?
+  movie      Movie     @relation(fields: [movieId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@map("products")
+}
+
+model Movie {
+  id         String    @id @default(uuid())
+  movieTitle String
+  desc       String
+  year       Int?
+  posterUrl  String?
+  genres     Genre[]
+  director   String?
+  actors     String?
+  runtime    String?
+  active     Boolean   @default(true)
+  featured   Boolean   @default(false)
+  product    Product[]
+  @@map("movie")
+}
+
+model Genre {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  price  Float   @default(2.00)
+  movies Movie[]
+  @@map("genres")
+}

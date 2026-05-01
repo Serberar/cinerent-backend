@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "genres" ADD COLUMN     "price" DOUBLE PRECISION NOT NULL DEFAULT 2.00;
