@@ -73,7 +73,7 @@ function setup() {
   const addUser = (data = {}) => {
     const user = User.create({
       firstName: 'Ana', lastName: 'Ruiz', dni: '00000000T', phone: '600000000', address: 'Calle 1',
-      cardNumber: '4111 1111 1111 1234', email: 'ana@example.com', passwordHash: 'hash:secreta', ...data,
+      cardNumber: '4111 1111 1111 1234', email: 'ana@example.com', passwordHash: 'hash:secreta-1', ...data,
     });
     user.verifyEmail();
     if (data.role) user.role = data.role;
@@ -91,7 +91,7 @@ function setup() {
 
 const REGISTER = {
   firstName: 'Ana', lastName: 'Ruiz', dni: '00000000T', phone: '600000000', address: 'Calle 1',
-  cardNumber: '4111111111111234', email: 'Ana@Example.com', password: 'secreta',
+  cardNumber: '4111111111111234', email: 'Ana@Example.com', password: 'secreta-1',
 };
 
 module.exports = { setup, REGISTER };

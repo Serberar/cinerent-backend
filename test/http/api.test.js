@@ -52,6 +52,16 @@ test('flujo completo: alquilar, consultar y devolver', async () => {
   assert.equal((await call('PATCH', `/api/product/${rented.body.alquiler.id}/return`, { token })).status, 200);
 });
 
+test('demasiados intentos de login se frenan', async () => {
+  const app = createApp({ useCases: ctx.useCases, frontendUrl: 'x', maxAuthAttempts: 2, logger: { error() {} } });
+  const other = await new Promise((resolve) => { const s = app.listen(0, () => resolve(s)); });
+  const login = () => fetch(`http://127.0.0.1:${other.address().port}/api/user/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'nadie@example.com', password: 'mal' }),
+  }).then((res) => res.status);
+  assert.deepEqual([await login(), await login(), await login()], [401, 401, 429]);
+  other.close();
+});
+
 test('los errores internos no se muestran al cliente', async () => {
   const app = createApp({
     useCases: { listGenres: async () => { throw new Error('conexión a la base de datos: secreto'); } },

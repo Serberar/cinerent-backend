@@ -35,3 +35,21 @@ jobs:
       - run: npm test
       - run: npx prisma migrate deploy
       - run: npm run test:integration
+      - name: Los datos de ejemplo se cargan y se pueden repetir
+        run: npm run seed && npm run seed
+        env:
+          ADMIN_EMAIL: admin@example.com
+          ADMIN_PASSWORD: solo-para-la-ci
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: docker compose up -d --build --wait --wait-timeout 120
+      - run: docker compose exec -T api node prisma/seed.js
+      - name: El catálogo responde con datos
+        run: curl -fsS http://127.0.0.1:4000/api/movie/all-movies | grep -q Nebulosa
+      - if: failure()
+        run: docker compose logs

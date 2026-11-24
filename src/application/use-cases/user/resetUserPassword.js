@@ -1,7 +1,8 @@
-const { badRequest, forbidden, notFound } = require('../../../domain/errors');
+const assertPassword = require('../../../domain/password');
+const { forbidden, notFound } = require('../../../domain/errors');
 
 module.exports = ({ userRepo, passwordHasher }) => async function resetUserPassword({ userId, newPassword }) {
-  if (!newPassword || newPassword.length < 6) throw badRequest('La contraseña debe tener al menos 6 caracteres');
+  assertPassword(newPassword);
 
   const user = await userRepo.findById(userId);
   if (!user) throw notFound('Usuario no encontrado');

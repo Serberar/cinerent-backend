@@ -66,7 +66,7 @@ test('un usuario suspendido no entra y su token deja de valer', async () => {
   const { useCases, addUser } = setup();
   const user = addUser();
   await useCases.suspendUser({ userId: user.id, note: 'impago' });
-  await assert.rejects(useCases.login({ email: user.email, password: 'secreta' }), { status: 403 });
+  await assert.rejects(useCases.login({ email: user.email, password: 'secreta-1' }), { status: 403 });
   await assert.rejects(useCases.authenticate({ token: `token:${user.id}` }), { status: 403 });
 });
 
@@ -88,7 +88,7 @@ test('cambiar la contraseña exige la actual', async () => {
   const { useCases, addUser } = setup();
   const user = addUser();
   await assert.rejects(useCases.changePassword({ userId: user.id, currentPassword: 'mal', newPassword: 'nueva-clave' }), { status: 401 });
-  await useCases.changePassword({ userId: user.id, currentPassword: 'secreta', newPassword: 'nueva-clave' });
+  await useCases.changePassword({ userId: user.id, currentPassword: 'secreta-1', newPassword: 'nueva-clave' });
   assert.equal(user.passwordHash, 'hash:nueva-clave');
 });
 

@@ -1,8 +1,9 @@
 const { User } = require('../../../domain/User');
-const { badRequest, conflict } = require('../../../domain/errors');
+const assertPassword = require('../../../domain/password');
+const { conflict } = require('../../../domain/errors');
 
 module.exports = ({ userRepo, passwordHasher, emailSender, frontendUrl }) => async function register({ firstName, lastName, dni, phone, address, cardNumber, email, password }) {
-  if (password.length < 6) throw badRequest('La contraseña debe tener al menos 6 caracteres');
+  assertPassword(password);
   if (await userRepo.findByEmail(email)) throw conflict(`El usuario '${email}' ya existe`);
 
   const passwordHash = await passwordHasher.hash(password);
