@@ -76,6 +76,10 @@ La CI ejecuta las dos en cada push, con las migraciones aplicadas sobre un Postg
 | `/api/admin` | Administración |
 | `/health` | Comprobación de salud |
 
+## Licencia
+
+Publicado con licencia [MIT](LICENSE).
+
 ## Autor
 
 Sergio Bernabé
