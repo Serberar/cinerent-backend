@@ -1,31 +1,19 @@
-const productRepo = require('../../../infrastructure/db/productRepo');
-const userRepo = require('../../../infrastructure/db/userRepo');
-const emailService = require('../../../infrastructure/email/emailService');
+const { badRequest, forbidden, notFound } = require('../../../domain/errors');
 
-const err = (msg, status) => Object.assign(new Error(msg), { status });
+module.exports = ({ productRepo, userRepo, emailSender, logger }) => async function returnMovie({ userId, productId }) {
+  const user = await userRepo.findById(userId);
+  if (!user) throw notFound('Usuario no encontrado');
+  if (!user.isEmailVerified) throw forbidden('Verifica tu email antes de entrar');
 
-module.exports = async function returnMovie({ userId, productId }) {
-    //se comprueba que el usuario tenga el mail verificado
-    const user = await userRepo.findById(userId);
-    if (!user) throw err('Usuario no encontrado', 404);
-    if (!user.isEmailVerified) throw err('Verifica tu email antes de entrar', 403);
+  const rental = await productRepo.findById(productId);
+  // Un alquiler ajeno se trata como inexistente para no revelar que existe
+  if (!rental || !rental.belongsTo(userId)) throw notFound('Alquiler no encontrado');
+  if (!rental.isActive()) throw badRequest('La pelicula ya esta devuelta');
 
-    //se almacena los datos en rent y se comprueba que el alquiler exista y este devuelto
-    const rent = await productRepo.findById(productId);
-    if (!rent) {
-        throw err('Alquiler no encontrado', 404);
-    }
-    if (!rent.isActive()) {
-        throw err('La pelicula ya esta devuelta', 400);
-    }
+  rental.markAsReturned();
+  await productRepo.update(rental);
+  emailSender.send(user.email, 'returnConfirmation', { movieTitle: rental.movieTitle, returnedAt: rental.returnedAt })
+    .catch((error) => logger.error('Email returnConfirmation fallido:', error.message));
 
-    //se marca como devuelto y se updatea en la base de datos
-    rent.markAsReturned();
-    await productRepo.update(rent);
-    emailService.send(user.email, 'returnConfirmation',
-        { movieTitle: rent.movieTitle, returnedAt: rent.returnedAt })
-        .catch(e => console.error('Email returnConfirmation fallido:', e.message));
-
-    //se devuelvn los datos
-    return { rent };
-}
+  return { rent: rental };
+};

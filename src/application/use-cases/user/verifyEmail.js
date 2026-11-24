@@ -1,10 +1,8 @@
-const userRepo = require('../../../infrastructure/db/userRepo');
+const { badRequest } = require('../../../domain/errors');
 
-const err = (msg, status) => Object.assign(new Error(msg), { status });
-
-module.exports = async function verifyEmail({ token }) {
+module.exports = ({ userRepo }) => async function verifyEmail({ token }) {
   const user = await userRepo.findByVerificationToken(token);
-  if (!user || user.isVerificationTokenExpired()) throw err('Token de verificacion invalido o expirado', 400);
+  if (!user || user.isVerificationTokenExpired()) throw badRequest('Token de verificacion invalido o expirado');
 
   user.verifyEmail();
   await userRepo.update(user);

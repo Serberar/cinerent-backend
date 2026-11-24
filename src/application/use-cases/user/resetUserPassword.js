@@ -1,17 +1,12 @@
-const bcrypt   = require('bcryptjs');
-const userRepo = require('../../../infrastructure/db/userRepo');
+const { badRequest, forbidden, notFound } = require('../../../domain/errors');
 
-const err = (msg, status) => Object.assign(new Error(msg), { status });
+module.exports = ({ userRepo, passwordHasher }) => async function resetUserPassword({ userId, newPassword }) {
+  if (!newPassword || newPassword.length < 6) throw badRequest('La contraseña debe tener al menos 6 caracteres');
 
-module.exports = async function resetUserPassword({ userId, newPassword }) {
-    if (!newPassword || newPassword.length < 6)
-        throw err('La contraseña debe tener al menos 6 caracteres', 400);
+  const user = await userRepo.findById(userId);
+  if (!user) throw notFound('Usuario no encontrado');
+  if (user.role === 'ADMIN') throw forbidden('No se puede cambiar la contraseña de un administrador');
 
-    const user = await userRepo.findById(userId);
-    if (!user) throw err('Usuario no encontrado', 404);
-
-    const passwordHash = await bcrypt.hash(newPassword, 12);
-    await userRepo.updatePassword({ id: userId, passwordHash });
-
-    return { ok: true };
+  await userRepo.updatePassword({ id: userId, passwordHash: await passwordHasher.hash(newPassword) });
+  return { ok: true };
 };

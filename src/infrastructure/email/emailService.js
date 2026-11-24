@@ -1,17 +1,17 @@
 const nodemailer = require('nodemailer');
-const { smtp } = require('../../config');
 
-const transporter = nodemailer.createTransport({
-  host:   smtp.host,
-  port:   smtp.port,
-  secure: smtp.secure,
-  auth:   { user: smtp.user, pass: smtp.pass },
-});
+module.exports = ({ smtp }) => {
+  const transporter = nodemailer.createTransport({
+    host: smtp.host,
+    port: smtp.port,
+    secure: smtp.secure,
+    auth: smtp.user ? { user: smtp.user, pass: smtp.pass } : undefined,
+  });
 
-module.exports = {
-  send: async (to, templateName, data) => {
-    const template = require(`./templates/${templateName}`);
-    const { subject, html } = template(data);
-    await transporter.sendMail({ from: smtp.from, to, subject, html });
-  },
+  return {
+    send: async (to, templateName, data) => {
+      const { subject, html } = require(`./templates/${templateName}`)(data);
+      await transporter.sendMail({ from: smtp.from, to, subject, html });
+    },
+  };
 };

@@ -18,7 +18,7 @@ model User {
   dni                             String    @unique
   phone                           String
   address                         String
-  cardNumber                      String
+  cardLast4                       String
   email                           String    @unique
   passwordHash                    String
   isEmailVerified                 Boolean   @default(false)

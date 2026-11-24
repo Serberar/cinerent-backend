@@ -1,9 +1,7 @@
-const genreRepo = require('../../../infrastructure/db/genreRepo');
+const { notFound } = require('../../../domain/errors');
 
-module.exports = async function deleteGenre({ id }) {
-    const genre = await genreRepo.findById(id);
-    if (!genre) throw Object.assign(new Error('Género no encontrado'), { status: 404 });
-
-    await genreRepo.delete(id);
-    return { message: 'Género eliminado correctamente' };
+module.exports = ({ genreRepo }) => async function deleteGenre({ id }) {
+  if (!(await genreRepo.findById(id))) throw notFound('Género no encontrado');
+  await genreRepo.delete(id);
+  return { message: 'Género eliminado correctamente' };
 };

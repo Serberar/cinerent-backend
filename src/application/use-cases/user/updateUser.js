@@ -1,9 +1,8 @@
+const { notFound } = require('../../../domain/errors');
 
-const userRepo = require('../../../infrastructure/db/userRepo');
-
-module.exports = async function updateUser({ userId, firstName, lastName, phone, address }) {
+module.exports = ({ userRepo }) => async function updateUser({ userId, firstName, lastName, phone, address }) {
   const user = await userRepo.findById(userId);
-  if (!user) throw Object.assign(new Error('Usuario no encontrado'), { status: 404 });
+  if (!user) throw notFound('Usuario no encontrado');
 
   user.updateProfile({ firstName, lastName, phone, address });
   await userRepo.updateProfile(user);

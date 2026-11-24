@@ -104,7 +104,7 @@ async function main() {
                     dni:             '00000000A',
                     phone:           '000000000',
                     address:         'Admin',
-                    cardNumber:      '0000000000000000',
+                    cardLast4:       '0000',
                     email:           adminEmail,
                     passwordHash:    await bcrypt.hash(adminPassword, 12),
                     isEmailVerified: true,

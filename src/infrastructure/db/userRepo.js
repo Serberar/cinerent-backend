@@ -13,7 +13,7 @@ module.exports = {
     data: {
       id: user.id,
       firstName: user.firstName, lastName: user.lastName, dni: user.dni,
-      phone: user.phone, address: user.address, cardNumber: user.cardNumber,
+      phone: user.phone, address: user.address, cardLast4: user.cardLast4,
       email: user.email, passwordHash: user.passwordHash,
       isEmailVerified: user.isEmailVerified,
       emailVerificationToken: user.emailVerificationToken,
@@ -42,7 +42,7 @@ module.exports = {
 
   updateCard: (user) => db.user.update({
     where: { id: user.id },
-    data: { cardNumber: user.cardNumber, updatedAt: user.updatedAt },
+    data: { cardLast4: user.cardLast4, updatedAt: user.updatedAt },
   }),
 
   updatePassword: ({ id, passwordHash }) => db.user.update({

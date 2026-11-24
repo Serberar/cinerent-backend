@@ -1,11 +1,11 @@
-const userRepo = require('../../../infrastructure/db/userRepo');
+const { notFound } = require('../../../domain/errors');
 
-module.exports = async function updateCard({ userId, cardNumber }) {
-    const user = await userRepo.findById(userId);
-    if (!user) throw Object.assign(new Error('Usuario no encontrado'), { status: 404 });
+module.exports = ({ userRepo }) => async function updateCard({ userId, cardNumber }) {
+  const user = await userRepo.findById(userId);
+  if (!user) throw notFound('Usuario no encontrado');
 
-    user.updateCard(cardNumber);
-    await userRepo.updateCard(user);
+  user.updateCard(cardNumber);
+  await userRepo.updateCard(user);
 
-    return { message: 'Tarjeta actualizada correctamente' };
+  return { message: 'Tarjeta actualizada correctamente' };
 };

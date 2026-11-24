@@ -1,5 +1,5 @@
 {
-  "name": "hexagonal-auth-api",
+  "name": "cinerent-backend",
   "version": "1.0.0",
   "description": "API REST con arquitectura hexagonal estricta, JWT y verificación de email",
   "main": "src/main.js",
@@ -15,7 +15,9 @@
     "prisma:studio": "prisma studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f app"
+    "docker:logs": "docker compose logs -f app",
+    "test": "node --test test/unit/*.test.js test/http/*.test.js",
+    "test:integration": "node --test test/integration/*.test.js"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",

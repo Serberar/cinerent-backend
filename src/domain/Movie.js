@@ -1,5 +1,5 @@
-
 const crypto = require('crypto');
+const { badRequest } = require('./errors');
 
 class Movie {
     constructor({ id, movieTitle, desc, year, posterUrl, genres, director, actors, runtime, active, featured }) {
@@ -17,7 +17,7 @@ class Movie {
     }
     static create({ movieTitle, desc, year, posterUrl, genres, director, actors, runtime }) {
         if (!movieTitle || !desc) {
-            throw new Error("Faltan datos por rellenar");
+            throw badRequest('Faltan datos por rellenar');
         }
         return new Movie({
             id: crypto.randomUUID(),

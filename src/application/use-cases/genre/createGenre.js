@@ -1,10 +1,8 @@
-const { Genre }  = require('../../../domain/Genre');
-const genreRepo  = require('../../../infrastructure/db/genreRepo');
+const { Genre } = require('../../../domain/Genre');
+const { conflict } = require('../../../domain/errors');
 
-module.exports = async function createGenre({ name, price }) {
-    const exists = await genreRepo.findByName(name?.trim());
-    if (exists) throw Object.assign(new Error('El género ya existe'), { status: 409 });
-
-    const genre = Genre.create({ name, price });
-    return genreRepo.create(genre);
+module.exports = ({ genreRepo }) => async function createGenre({ name, price }) {
+  const genre = Genre.create({ name, price });
+  if (await genreRepo.findByName(genre.name)) throw conflict('El género ya existe');
+  return genreRepo.create(genre);
 };

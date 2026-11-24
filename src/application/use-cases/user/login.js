@@ -1,14 +1,10 @@
-const bcrypt = require('bcryptjs');
-const userRepo = require('../../../infrastructure/db/userRepo');
-const tokenService = require('../../../infrastructure/token/tokenService');
+const { unauthorized, forbidden } = require('../../../domain/errors');
 
-const err = (msg, status) => Object.assign(new Error(msg), { status });
-
-module.exports = async function login({ email, password }) {
+module.exports = ({ userRepo, passwordHasher, tokenService }) => async function login({ email, password }) {
   const user = await userRepo.findByEmail(email);
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) throw err('Credenciales invalidas', 401);
-  if (!user.isEmailVerified) throw err('Verifica tu email antes de entrar', 403);
-  if (user.suspended) throw err(`Cuenta suspendida${user.suspensionNote ? ': ' + user.suspensionNote : ''}`, 403);
+  if (!user || !(await passwordHasher.compare(password, user.passwordHash))) throw unauthorized('Credenciales invalidas');
+  if (!user.isEmailVerified) throw forbidden('Verifica tu email antes de entrar');
+  if (user.suspended) throw forbidden(`Cuenta suspendida${user.suspensionNote ? ': ' + user.suspensionNote : ''}`);
 
   return { token: tokenService.sign(user.id) };
 };

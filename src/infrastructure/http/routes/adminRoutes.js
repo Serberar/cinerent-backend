@@ -1,55 +1,20 @@
 const { Router } = require('express');
-const listUsers = require('../../../application/use-cases/user/listUsers');
-const getUserDetail = require('../../../application/use-cases/user/getUserDetail');
-const suspendUser = require('../../../application/use-cases/user/suspendUser');
-const updateUserAdmin = require('../../../application/use-cases/user/updateUserAdmin');
-const resetUserPassword = require('../../../application/use-cases/user/resetUserPassword');
-const productRepo = require('../../db/productRepo');
-const movieRepo = require('../../db/movieRepo');
-const authMiddleware = require('../authMiddleware');
-const adminMiddleware = require('../adminMiddleware');
+const handle = require('../handler');
 
-const fail = (err, res) => res.status(err.status || 500).json({ error: err.message });
+module.exports = ({ useCases, auth, admin }) => {
+  const router = Router();
+  router.use(auth, admin);
 
-const router = Router();
-
-router.get('/all-movies', authMiddleware, adminMiddleware, async (req, res) => {
-    try { return res.status(200).json(await movieRepo.findAllAdmin()); }
-    catch (err) { return fail(err, res); }
-});
-
-router.get('/alquileres', authMiddleware, adminMiddleware, async (req, res) => {
-    try { return res.status(200).json(await productRepo.findAllActive()); }
-    catch (err) { return fail(err, res); }
-});
-
-router.get('/lista-de-usuarios', authMiddleware, adminMiddleware, async (req, res) => {
-    try { return res.status(200).json(await listUsers()); }
-    catch (err) { return fail(err, res); }
-});
-
-
-router.patch('/:id/suspend', authMiddleware, adminMiddleware, async (req, res) => {
-    const { note } = req.body ?? {};
-    try { return res.status(200).json(await suspendUser({ userId: req.params.id, note })); }
-    catch (err) { return fail(err, res); }
-});
-
-router.get('/:id', authMiddleware, adminMiddleware, async (req, res) => {
-    try { return res.status(200).json(await getUserDetail({ userId: req.params.id })); }
-    catch (err) { return fail(err, res); }
-});
-
-router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  router.get('/all-movies', handle(() => useCases.listAllMovies()));
+  router.get('/alquileres', handle(() => useCases.listActive()));
+  router.get('/lista-de-usuarios', handle(() => useCases.listUsers()));
+  router.get('/:id', handle((req) => useCases.getUserDetail({ userId: req.params.id })));
+  router.put('/:id', handle((req) => {
     const { firstName, lastName, phone, address } = req.body ?? {};
-    try { return res.status(200).json(await updateUserAdmin({ userId: req.params.id, firstName, lastName, phone, address })); }
-    catch (err) { return fail(err, res); }
-});
+    return useCases.updateUserAdmin({ userId: req.params.id, firstName, lastName, phone, address });
+  }));
+  router.patch('/:id/suspend', handle((req) => useCases.suspendUser({ userId: req.params.id, note: req.body?.note })));
+  router.patch('/:id/password', handle((req) => useCases.resetUserPassword({ userId: req.params.id, newPassword: req.body?.newPassword })));
 
-router.patch('/:id/password', authMiddleware, adminMiddleware, async (req, res) => {
-    const { newPassword } = req.body ?? {};
-    try { return res.json(await resetUserPassword({ userId: req.params.id, newPassword })); }
-    catch (err) { return fail(err, res); }
-});
-
-module.exports = router;
+  return router;
+};

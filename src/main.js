@@ -1,29 +1,14 @@
+const config = require('./config');
+const useCases = require('./container');
+const createApp = require('./infrastructure/http/app');
 
-const { port } = require('./config');
-const app = require('./infrastructure/http/app');
-const productRepo = require('./infrastructure/db/productRepo');
-const userRepo = require('./infrastructure/db/userRepo');
-const emailService = require('./infrastructure/email/emailService');
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-async function autoReturn () {
-  const activos = await productRepo.findAllActive()
-  const now = Date.now()
-  for (const rental of activos) {
-    const expiry = new Date(rental.rentedAt).getTime() + rental.dias * 24 * 60 * 60 * 1000
-    if (expiry <= now) {
-      rental.markAsReturned()
-      await productRepo.update(rental)
-      const user = await userRepo.findById(rental.userId)
-      if (user) {
-        const fecha = new Date(rental.returnedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
-        await emailService.send(user.email, 'returnConfirmation', { movieTitle: rental.movieTitle, returnedAt: fecha })
-      }
-    }
-  }
-}
+const returnExpired = () => useCases.returnExpired()
+  .catch((error) => console.error('Devolución automática fallida:', error.message));
 
-app.listen(port, () => {
-  console.log(`http://localhost:${port}`)
-  autoReturn()
-  setInterval(autoReturn, 24 * 60 * 60 * 1000)
+createApp({ useCases, frontendUrl: config.frontendUrl }).listen(config.port, () => {
+  console.log(`http://localhost:${config.port}`);
+  returnExpired();
+  setInterval(returnExpired, DAY_MS);
 });

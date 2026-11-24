@@ -1,9 +1,9 @@
-const movieRepo = require('../../../infrastructure/db/movieRepo');
+const { notFound } = require('../../../domain/errors');
 
-module.exports = async function updateMovie({ id, movieTitle, desc, year, posterUrl, director, actors, runtime, genreIds }) {
-    const movie = await movieRepo.findById(id);
-    if (!movie) throw Object.assign(new Error('Película no encontrada'), { status: 404 });
+module.exports = ({ movieRepo }) => async function updateMovie({ id, genreIds, ...data }) {
+  const movie = await movieRepo.findById(id);
+  if (!movie) throw notFound('Película no encontrada');
 
-    movie.updateMovie({ movieTitle, desc, year, posterUrl, director, actors, runtime });
-    return movieRepo.update(movie, genreIds);
+  movie.updateMovie(data);
+  return movieRepo.update(movie, genreIds);
 };

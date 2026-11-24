@@ -1,16 +1,8 @@
-const userRepo = require('../../../infrastructure/db/userRepo');
-
-module.exports = async function listUsers() {
-    const all = await userRepo.findAll();
-    const users = all.filter(u => u.role !== 'ADMIN');
-    return { users: users.map(u => ({
-    id: u.id,
-    firstName: u.firstName,
-    lastName: u.lastName,
-    email: u.email,
-    role: u.role,
-    createdAt: u.createdAt,
-    suspended: u.suspended,
-    suspensionNote: u.suspensionNote
-    }))};
-}
+module.exports = ({ userRepo }) => async function listUsers() {
+  const users = (await userRepo.findAll()).filter((user) => user.role !== 'ADMIN');
+  return {
+    users: users.map(({ id, firstName, lastName, email, role, createdAt, suspended, suspensionNote }) => (
+      { id, firstName, lastName, email, role, createdAt, suspended, suspensionNote }
+    )),
+  };
+};

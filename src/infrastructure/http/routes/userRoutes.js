@@ -1,68 +1,35 @@
-
 const { Router } = require('express');
-const register    = require('../../../application/use-cases/user/register');
-const login       = require('../../../application/use-cases/user/login');
-const verifyEmail = require('../../../application/use-cases/user/verifyEmail');
-const updateUser  = require('../../../application/use-cases/user/updateUser');
-const updateCard = require('../../../application/use-cases/user/updateCard');
-const changePassword = require('../../../application/use-cases/user/changePassword');
-const userRepo = require('../../db/userRepo');
-const authMiddleware = require('../authMiddleware');
+const handle = require('../handler');
+const requireText = require('../validate');
 
-const fail = (err, res) => res.status(err.status || 500).json({ error: err.message });
+const REGISTER_FIELDS = ['firstName', 'lastName', 'dni', 'phone', 'address', 'cardNumber', 'email', 'password'];
 
-const router = Router();
+module.exports = ({ useCases, auth }) => {
+  const router = Router();
 
-router.post('/register', async (req, res) => {
-  const { firstName, lastName, dni, phone, address, cardNumber, email, password } = req.body ?? {};
-  if (!firstName || !lastName || !dni || !phone || !address || !cardNumber || !email || !password)
-    return res.status(400).json({ error: 'Todos los campos son requeridos' });
-  try { return res.status(201).json(await register({ firstName, lastName, dni, phone, address, cardNumber, email, password })); }
-  catch (err) { return fail(err, res); }
-});
+  router.post('/register', handle((req) => (
+    useCases.register(requireText(req.body, REGISTER_FIELDS, 'Todos los campos son requeridos'))
+  ), 201));
+  router.post('/login', handle((req) => (
+    useCases.login(requireText(req.body, ['email', 'password'], 'Email y contrasena requeridos'))
+  )));
+  router.get('/verify-email', handle((req) => (
+    useCases.verifyEmail(requireText(req.query, ['token'], 'Token requerido'))
+  )));
+  router.get('/me', auth, handle((req) => useCases.getProfile({ userId: req.user.id })));
+  router.patch('/me', auth, handle((req) => {
+    const { firstName, lastName, phone, address } = req.body ?? {};
+    return useCases.updateUser({ userId: req.user.id, firstName, lastName, phone, address });
+  }));
+  router.patch('/me/card', auth, handle((req) => (
+    useCases.updateCard({ userId: req.user.id, ...requireText(req.body, ['cardNumber'], 'El número de tarjeta es requerido') })
+  )));
+  router.patch('/me/password', auth, handle((req) => (
+    useCases.changePassword({
+      userId: req.user.id,
+      ...requireText(req.body, ['currentPassword', 'newPassword'], 'La contraseña actual y la nueva son requeridas'),
+    })
+  )));
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body ?? {};
-  if (!email || !password) return res.status(400).json({ error: 'Email y contrasena requeridos' });
-  try { return res.json(await login({ email, password })); }
-  catch (err) { return fail(err, res); }
-});
-
-router.get('/verify-email', async (req, res) => {
-  const { token } = req.query;
-  if (!token) return res.status(400).json({ error: 'Token requerido' });
-  try { return res.json(await verifyEmail({ token })); }
-  catch (err) { return fail(err, res); }
-});
-
-router.get('/me', authMiddleware, async (req, res) => {
-  try {
-    const user = await userRepo.findById(req.userId);
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-    const last4 = user.cardNumber?.slice(-4) ?? '????';
-    return res.json({ id: user.id, firstName: user.firstName, lastName: user.lastName, dni: user.dni, phone: user.phone, address: user.address, email: user.email, isEmailVerified: user.isEmailVerified, role: user.role, cardLast4: last4 });
-  } catch (err) { return fail(err, res); }
-});
-
-router.patch('/me', authMiddleware, async (req, res) => {
-  const { firstName, lastName, phone, address } = req.body ?? {};
-  try { return res.json(await updateUser({ userId: req.userId, firstName, lastName, phone, address })); }
-  catch (err) { return fail(err, res); }
-});
-
-router.patch('/me/card', authMiddleware, async (req, res) => {
-  const { cardNumber } = req.body ?? {};
-  if (!cardNumber) return res.status(400).json({ error: 'El número de tarjeta es requerido' });
-  try { return res.json(await updateCard({ userId: req.userId, cardNumber })); }
-  catch (err) { return fail(err, res); }
-});
-
-router.patch('/me/password', authMiddleware, async (req, res) => {
-  const { currentPassword, newPassword } = req.body ?? {};
-  if (!currentPassword || !newPassword)
-    return res.status(400).json({ error: 'La contraseña actual y la nueva son requeridas' });
-  try { return res.json(await changePassword({ userId: req.userId, currentPassword, newPassword })); }
-  catch (err) { return fail(err, res); }
-});
-
-module.exports = router;
+  return router;
+};

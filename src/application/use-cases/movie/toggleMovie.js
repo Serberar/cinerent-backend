@@ -1,11 +1,10 @@
-const movieRepo = require('../../../infrastructure/db/movieRepo');
+const { notFound } = require('../../../domain/errors');
 
-module.exports = async function toggleMovie({ id }) {
-    const movie = await movieRepo.findById(id);
-    if (!movie) throw Object.assign(new Error('Película no encontrada'), { status: 404 });
+module.exports = ({ movieRepo }) => async function toggleMovie({ id }) {
+  const movie = await movieRepo.findById(id);
+  if (!movie) throw notFound('Película no encontrada');
 
-    movie.toggleActive();
-    await movieRepo.toggle(movie);
-
-    return { id: movie.id, movieTitle: movie.movieTitle, active: movie.active };
+  movie.toggleActive();
+  await movieRepo.toggle(movie);
+  return { id: movie.id, movieTitle: movie.movieTitle, active: movie.active };
 };

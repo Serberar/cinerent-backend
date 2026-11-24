@@ -1,8 +1,17 @@
-
 const crypto = require('crypto');
+const { badRequest } = require('./errors');
+
+const CARD_DIGITS = /^\d{16}$/;
+
+// Solo se conservan los cuatro últimos dígitos: el número completo nunca se guarda
+function cardLast4From(cardNumber) {
+  const digits = String(cardNumber ?? '').replace(/\s/g, '');
+  if (!CARD_DIGITS.test(digits)) throw badRequest('El número de tarjeta debe tener 16 dígitos');
+  return digits.slice(-4);
+}
 
 class User {
-  constructor({ id, role = 'USER', firstName, lastName, dni, phone, address, cardNumber, email, passwordHash,
+  constructor({ id, role = 'USER', firstName, lastName, dni, phone, address, cardLast4, email, passwordHash,
     isEmailVerified = false, emailVerificationToken = null,
     emailVerificationTokenExpiresAt = null, createdAt = new Date(), updatedAt = new Date(),
     suspended = false, suspensionNote = null }) {
@@ -13,7 +22,7 @@ class User {
     this.dni = dni;
     this.phone = phone;
     this.address = address;
-    this.cardNumber = cardNumber;
+    this.cardLast4 = cardLast4;
     this.email = email;
     this.passwordHash = passwordHash;
     this.isEmailVerified = isEmailVerified;
@@ -28,7 +37,8 @@ class User {
   static create({ firstName, lastName, dni, phone, address, cardNumber, email, passwordHash }) {
     return new User({
       id: crypto.randomUUID(),
-      firstName, lastName, dni, phone, address, cardNumber,
+      firstName, lastName, dni, phone, address,
+      cardLast4: cardLast4From(cardNumber),
       email: email.toLowerCase().trim(),
       passwordHash,
       emailVerificationToken: crypto.randomBytes(32).toString('hex'),
@@ -56,10 +66,8 @@ class User {
   }
 
   updateCard(cardNumber) {
-    if (!cardNumber || cardNumber.replace(/\s/g, '').length !== 16)
-      throw Object.assign(new Error('El número de tarjeta debe tener 16 dígitos'), { status: 400 });
-    this.cardNumber = cardNumber.replace(/\s/g, '');
-    this.updatedAt  = new Date();
+    this.cardLast4 = cardLast4From(cardNumber);
+    this.updatedAt = new Date();
   }
 
   suspend(note) {

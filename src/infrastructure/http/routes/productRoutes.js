@@ -1,29 +1,16 @@
 const { Router } = require('express');
-const rent = require('../../../application/use-cases/product/rent');
-const returnProduct = require('../../../application/use-cases/product/return');
-const productRepo = require('../../db/productRepo');
-const authMiddleware = require('../authMiddleware');
+const handle = require('../handler');
+const requireText = require('../validate');
 
-const fail = (err, res) => res.status(err.status || 500).json({ error: err.message });
+module.exports = ({ useCases, auth }) => {
+  const router = Router();
 
-const router = Router();
+  router.post('/rent', auth, handle((req) => {
+    const { movieId } = requireText(req.body, ['movieId'], 'movieId y dias son requeridos');
+    return useCases.rent({ userId: req.user.id, movieId, dias: Number(req.body.dias) });
+  }, 201));
+  router.patch('/:id/return', auth, handle((req) => useCases.returnMovie({ userId: req.user.id, productId: req.params.id })));
+  router.get('/history', auth, handle((req) => useCases.listHistory({ userId: req.user.id })));
 
-router.post('/rent', authMiddleware, async (req, res) => {
-  const { movieId, movieTitle, dias } = req.body ?? {};
-  if (!movieId || !movieTitle || !dias)
-    return res.status(400).json({ error: 'movieId, movieTitle y dias son requeridos' });
-  try { return res.status(201).json(await rent({ userId: req.userId, movieId, movieTitle, dias })); }
-  catch (err) { return fail(err, res); }
-});
-
-router.patch('/:id/return', authMiddleware, async (req, res) => {
-  try { return res.json(await returnProduct({ userId: req.userId, productId: req.params.id })); }
-  catch (err) { return fail(err, res); }
-});
-
-router.get('/history', authMiddleware, async (req, res) => {
-  try { return res.json(await productRepo.findByUser(req.userId)); }
-  catch (err) { return fail(err, res); }
-});
-
-module.exports = router;
+  return router;
+};

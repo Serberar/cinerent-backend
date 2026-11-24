@@ -1,19 +1,11 @@
-const bcrypt   = require('bcryptjs');
-const userRepo = require('../../../infrastructure/db/userRepo');
+const { badRequest, notFound, unauthorized } = require('../../../domain/errors');
 
-const err = (msg, status) => Object.assign(new Error(msg), { status });
+module.exports = ({ userRepo, passwordHasher }) => async function changePassword({ userId, currentPassword, newPassword }) {
+  const user = await userRepo.findById(userId);
+  if (!user) throw notFound('Usuario no encontrado');
+  if (!(await passwordHasher.compare(currentPassword, user.passwordHash))) throw unauthorized('La contraseña actual no es correcta');
+  if (newPassword.length < 6) throw badRequest('La nueva contraseña debe tener al menos 6 caracteres');
 
-module.exports = async function changePassword({ userId, currentPassword, newPassword }) {
-    const user = await userRepo.findById(userId);
-    if (!user) throw err('Usuario no encontrado', 404);
-
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!valid) throw err('La contraseña actual no es correcta', 401);
-
-    if (newPassword.length < 6) throw err('La nueva contraseña debe tener al menos 6 caracteres', 400);
-
-    const passwordHash = await bcrypt.hash(newPassword, 12);
-    await userRepo.updatePassword({ id: userId, passwordHash });
-
-    return { ok: true };
+  await userRepo.updatePassword({ id: userId, passwordHash: await passwordHasher.hash(newPassword) });
+  return { ok: true };
 };
