@@ -1,8 +1,8 @@
-# CineRent · Backend del proyecto final (FP)
+# CineRent · Backend
 
-Backend del proyecto final de ciclo: la API de **CineRent**, un videoclub online para alquilar películas. Hecho con Node.js y **arquitectura hexagonal estricta**, con JWT, verificación de email, catálogo de películas y panel de administración.
+API de **CineRent**, un videoclub online para alquilar películas. Hecho con Node.js y **arquitectura hexagonal estricta**, con JWT, verificación de email, catálogo de películas y panel de administración.
 
-Es la versión más completa del backend de CineRent; el frontend es [frontend-daw-](https://github.com/Serberar/frontend-daw-) y hay versiones previas en [backend-daw](https://github.com/Serberar/backend-daw).
+El frontend es [cinerent-frontend](https://github.com/Serberar/cinerent-frontend).
 
 ## Funcionalidades
 
