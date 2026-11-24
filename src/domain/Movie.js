@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const { badRequest } = require('./errors');
 
+const DEFAULT_PRICE = 2;
+
 class Movie {
     constructor({ id, movieTitle, desc, year, posterUrl, genres, director, actors, runtime, active, featured }) {
         this.id = id;
@@ -36,6 +38,11 @@ class Movie {
         if (director) this.director = director;
         if (actors) this.actors = actors;
         if (runtime) this.runtime = runtime;
+    }
+    // El día cuesta lo que el género más caro de la película
+    pricePerDay() {
+        const prices = this.genres.map((genre) => genre.price ?? DEFAULT_PRICE);
+        return prices.length ? Math.max(...prices) : DEFAULT_PRICE;
     }
     toggleActive() {
         this.active = !this.active;

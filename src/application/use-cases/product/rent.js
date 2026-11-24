@@ -16,7 +16,7 @@ module.exports = ({ productRepo, movieRepo, userRepo, emailSender, logger }) => 
 
   const rental = Product.create({ userId, movieId, movieTitle: movie.movieTitle, dias });
   await productRepo.create(rental);
-  const total = rental.total();
+  const total = rental.total(movie.pricePerDay());
 
   // El alquiler ya está hecho: un fallo del correo no debe deshacerlo
   emailSender.send(user.email, 'rentConfirmation', { movieTitle: rental.movieTitle, dias: rental.dias, total })

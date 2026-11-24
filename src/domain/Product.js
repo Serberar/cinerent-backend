@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const { badRequest } = require('./errors');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const PRICE_PER_DAY = 2;
 const MAX_DAYS = 30;
 
 class Product {
@@ -38,8 +37,8 @@ class Product {
         return this.userId === userId;
     }
 
-    total() {
-        return this.dias * PRICE_PER_DAY;
+    total(pricePerDay) {
+        return Math.round(this.dias * pricePerDay * 100) / 100;
     }
 
     isExpired(now = new Date()) {

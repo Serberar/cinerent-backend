@@ -12,6 +12,13 @@ test('alquilar calcula el total y usa el título del catálogo', async () => {
   assert.equal(sent[0].template, 'rentConfirmation');
 });
 
+test('el total usa el precio del género más caro', async () => {
+  const { useCases, addUser, addMovie } = setup();
+  const movie = addMovie({ genres: [{ id: 'a', name: 'Drama', price: 1.5 }, { id: 'b', name: 'Terror', price: 2.99 }] });
+  const { total } = await useCases.rent({ userId: addUser().id, movieId: movie.id, dias: 3 });
+  assert.equal(total, 8.97);
+});
+
 test('los días deben ser un entero entre 1 y 30', async () => {
   const { useCases, addUser, addMovie } = setup();
   const base = { userId: addUser().id, movieId: addMovie().id };
