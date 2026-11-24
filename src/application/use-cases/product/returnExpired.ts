@@ -10,7 +10,7 @@ export const returnExpired = ({ productRepo, userRepo, emailSender, logger }: Pi
 
     const user = await userRepo.findById(rental.userId);
     if (!user) continue;
-        await emailSender.send(user.email, 'returnConfirmation', { movieTitle: rental.movieTitle, returnedAt })
+    await emailSender.send(user.email, 'returnConfirmation', { movieTitle: rental.movieTitle, returnedAt })
       .catch((error: Error) => logger.error('Email returnConfirmation fallido:', error.message));
   }
 
