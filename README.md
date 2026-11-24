@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Serberar/cinerent-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/Serberar/cinerent-backend/actions/workflows/ci.yml)
 
-API de **CineRent**, un videoclub online para alquilar películas. Node.js, Express, Prisma y PostgreSQL con **arquitectura hexagonal**, y una prueba que falla si alguna capa rompe la regla de dependencias.
+API de **CineRent**, un videoclub online para alquilar películas. TypeScript, Express, Prisma y PostgreSQL con **arquitectura hexagonal**, y una prueba que falla si alguna capa rompe la regla de dependencias.
 
 El frontend es [cinerent-frontend](https://github.com/Serberar/cinerent-frontend).
 
@@ -25,13 +25,13 @@ flowchart LR
 ```
 
 - **Dominio** (`src/domain`): entidades y reglas. No importa nada externo.
-- **Aplicación** (`src/application`): casos de uso que reciben sus dependencias. Solo conocen el dominio.
+- **Aplicación** (`src/application`): casos de uso que reciben sus dependencias. Solo conocen el dominio y sus puertos (`ports.ts`).
 - **Infraestructura** (`src/infrastructure`): Express, Prisma, correo, tokens y contraseñas.
-- **Composición** (`src/container.js`): el único sitio que une las piezas.
+- **Composición** (`src/container.ts`): el único sitio que une las piezas.
 
 ## Funcionalidades
 
-- **Usuarios:** registro con verificación de email, login con JWT, perfil, contraseña y tarjeta.
+- **Usuarios:** registro con verificación de email, sesión en cookie, perfil, contraseña y tarjeta.
 - **Catálogo:** películas y géneros, destacadas y activación.
 - **Alquileres:** alquilar, devolver, historial y devolución automática al vencer.
 - **Administración:** usuarios, suspensiones, catálogo y alquileres activos.
@@ -39,7 +39,9 @@ flowchart LR
 ## Decisiones de seguridad
 
 - De la tarjeta solo se guardan los cuatro últimos dígitos.
-- Los tokens caducan (`JWT_EXPIRES_IN`, 12 horas por defecto) y dejan de valer si se suspende la cuenta.
+- La sesión va en una cookie `HttpOnly`: un XSS no puede llevársela. Caduca (`JWT_EXPIRES_IN`, 12 horas por defecto) y deja de valer si se suspende la cuenta.
+- Los cambios pedidos desde otra web se rechazan (origen y `SameSite`).
+- Los textos que llegan a un correo se escapan.
 - Un alquiler ajeno responde igual que uno inexistente.
 - El login y el registro tienen límite de intentos, y las respuestas llevan cabeceras de `helmet`.
 - El título y el total salen del servidor, no de la petición.
@@ -52,7 +54,7 @@ Con Docker, en un clon limpio:
 ```bash
 cp .env.example .env
 docker compose up -d --build      # PostgreSQL y la API en http://localhost:4000
-docker compose exec api node prisma/seed.js
+docker compose exec api node dist/seed.js
 ```
 
 Para desarrollar con recarga (Node.js 22), con solo la base de datos en Docker:
@@ -69,6 +71,7 @@ El seed carga un catálogo ficticio. Si defines `ADMIN_EMAIL` y `ADMIN_PASSWORD`
 ## Pruebas
 
 ```bash
+npm run typecheck && npm run lint
 npm test                    # unitarias, arquitectura y HTTP, sin base de datos
 npm run test:integration    # repositorios contra PostgreSQL (usa y VACÍA la base de DATABASE_URL)
 ```
