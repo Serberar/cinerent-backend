@@ -2,11 +2,9 @@
 
 **Español** · [English](README.en.md)
 
-[![CI](https://github.com/Serberar/cinerent-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/Serberar/cinerent-backend/actions/workflows/ci.yml)
-
 API de **CineRent**, un videoclub online para alquilar películas. TypeScript, Express, Prisma y PostgreSQL con **arquitectura hexagonal**, y una prueba que falla si alguna capa rompe la regla de dependencias.
 
-El frontend es [cinerent-frontend](https://github.com/Serberar/cinerent-frontend).
+El frontend es cinerent-frontend.
 
 ## Arquitectura
 
