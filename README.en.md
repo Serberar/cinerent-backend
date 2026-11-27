@@ -1,6 +1,6 @@
 # CineRent · Backend
 
-API for **CineRent**, an online film rental shop. TypeScript, Express, Prisma and PostgreSQL with a **hexagonal architecture**, and a test that fails if any layer breaks the dependency rule. The frontend is [cinerent-frontend](https://github.com/Serberar/cinerent-frontend).
+API for **CineRent**, an online film rental shop. TypeScript, Express, Prisma and PostgreSQL with a **hexagonal architecture**, and a test that fails if any layer breaks the dependency rule. The frontend is cinerent-frontend.
 
 - **Domain** (`src/domain`): entities and rules, with no external imports.
 - **Application** (`src/application`): use cases that only know the domain and their ports (`ports.ts`).
